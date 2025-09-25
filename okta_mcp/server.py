@@ -93,6 +93,8 @@ def create_server(enable_auth: bool = True):
         from okta_mcp.tools.group_tools import register_group_tools
         from okta_mcp.tools.policy_network_tools import register_policy_tools 
         from okta_mcp.tools.datetime_tools import register_datetime_tools
+        from okta_mcp.tools.special_tools.access_analysis_tools import register_access_analysis_tools
+        from okta_mcp.tools.special_tools.suspicious_report_analysis import register_login_risk_analysis_tools
         
         register_user_tools(mcp, okta_client)
         register_apps_tools(mcp, okta_client)
@@ -100,6 +102,8 @@ def create_server(enable_auth: bool = True):
         register_group_tools(mcp, okta_client)
         register_policy_tools(mcp, okta_client) 
         register_datetime_tools(mcp, okta_client)
+        register_access_analysis_tools(mcp, okta_client)
+        register_login_risk_analysis_tools(mcp, okta_client)
         
         auth_status = "with authentication" if auth_provider else "without authentication"
         logger.info(f"Okta MCP server created successfully {auth_status} with all tools registered")

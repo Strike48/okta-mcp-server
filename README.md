@@ -5,7 +5,7 @@
 </div>
 
 <div align="center">
-  <h2>Okta MCP Server (v0.1.0-BETA)</h2>
+  <h2>Okta MCP Server (v0.1.1-BETA)</h2>
 </div>
 
 <div align="center">
@@ -29,11 +29,43 @@ The Okta MCP Server is a groundbreaking tool that enables AI models to interact 
 </p>
 </div>
 
-## 🎉 What's New in v0.1.0-BETA - Major Architecture Transformation!
+## 🎉 What's New in v0.1.1-BETA - Enterprise-Grade Special Tools!
 
-This release represents a **complete architectural overhaul** with these key improvements:
+This release introduces **powerful special tools** that revolutionize daily Okta administration tasks:
 
-### 🏗️ **Core Architecture**
+### 🔥 **NEW: Special Tools - Game Changers for Okta Admins**
+- **🎯 Comprehensive Access Analysis**: Helps answer the most frequent question okta admns face. Can user X access app Y?
+- **🛡️ Advanced Login Risk Assessment**: Behavioral analysis with VPN/Tor detection and geographic impossibility checks which can help with suspicious reporting emails. 
+
+**💡 Real-World Example - Access Analysis:**
+```
+❓ Question: "Can user john@company.com access the application Salesforce?"
+
+🤖 AI Response (30 seconds): "User John Smith can access Salesforce because: 
+1) User is ACTIVE ✅
+2) User is assigned via group 'Sales Team' ✅, 
+3) Policy allows access with 2FA from corporate network or requires PUSH factor from external locations - user has PUSH enrolled ✅"
+
+⏱️ Manual Process: Navigate Users → Find John → Check Status → Check App 
+Assignments → Check Group Memberships → Check Salesforce Assignments → 
+Review Access Policies → Check MFA Factors → Correlate Network Rules (10-15 min)
+```
+
+**💡 Real-World Example - Login Risk Assessment:**
+```
+❓ Question: "Is dan@company.com's recent login activity suspicious?"
+
+🤖 AI Response (30 seconds): "LOW RISK - Dan exhibits excellent login 
+security patterns: consistent geographic area, same residential ISP, 
+stable device fingerprints, normal browser patterns, zero VPN/proxy 
+usage, all Okta risk scores LOW ✅"
+
+⏱️ Manual Process: System Logs → Filter User → Check Locations → Review 
+IP Addresses → Cross-reference Network Zones → Analyze Device Patterns → 
+Check Geographic Impossibility → Review Behavioral Flags (15+ min)
+```
+
+### 🏗️ **Core Architecture** 
 - **🚀 FastMCP 2.0**: Migrated from legacy MCP package to FastMCP 2.0 for cutting-edge protocol features
 - **🧹 Cleaner Code**: Removed `tool_registry.py` dependency for simpler, more maintainable codebase
 - **⚡ Better Performance**: Modern async patterns and optimized request handling
@@ -57,7 +89,7 @@ This release represents a **complete architectural overhaul** with these key imp
 
 ## 📋 Table of Contents
 
-- [🎉 What's New in v0.1.0-BETA - Major Architecture Transformation!](#-whats-new-in-v010-beta---major-architecture-transformation)
+- [🎉 What's New in v0.1.1-BETA - Enterprise-Grade Special Tools!](#-whats-new-in-v011-beta---enterprise-grade-special-tools)
   - [🏗️ **Core Architecture**](#️-core-architecture)
   - [🛠️ **Enhanced Tools**](#️-enhanced-tools)
   - [🌐 **Unified Client**](#-unified-client)
@@ -156,6 +188,18 @@ The HTTP transport modes (both Streamable HTTP and SSE) have significant securit
 ## 🛠️ Available Tools
 
 The Okta MCP Server currently provides the following tools:
+
+### 🔥 **Special Tools - Enterprise Admin Accelerators**
+
+**Access Analysis & Troubleshooting**
+- `analyze_user_app_access` - Complete user application access evaluation with policy analysis (replaces 10-15 minutes of manual Okta Admin Console navigation)
+
+**Security & Risk Assessment**  
+- `analyze_login_risk` - Comprehensive login behavior analysis with VPN/Tor detection and geographic impossibility checks (answers "Is this user compromised?" instantly)
+
+> **⚡ Why These Matter**: The two most common questions Okta admins face daily are "Why can't user X access application Y?" and "Is this login activity suspicious?". These special tools instantly provide comprehensive answers that would otherwise require extensive manual investigation across multiple Okta admin screens, policy reviews, and log analysis - transforming 15+ minute investigations into 30-second AI-powered insights.
+
+### 📊 **Standard Tools**
 
 **User Management**
 - `list_okta_users` - Retrieve users with filtering, search, and pagination options
