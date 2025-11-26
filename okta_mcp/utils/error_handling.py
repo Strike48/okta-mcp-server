@@ -44,35 +44,35 @@ def normalize_result(result: Any) -> Dict[str, Any]:
     return {"status": "success", "data": result}
 
 
-def format_error_response(error: Exception, tool_name: str) -> List[TextContent]:
-    """Format an error into a user-friendly MCP text response.
+def format_error_response(error: Exception, tool_name: str) -> Dict[str, Any]:
+    """Format an error into a user-friendly error dict response.
     
     Args:
         error: The exception that occurred
         tool_name: Name of the tool that encountered the error
         
     Returns:
-        Formatted error message as MCP TextContent
+        Formatted error message as a dict (FastMCP compatible)
     """
     error_type = type(error).__name__
     error_message = str(error)
     
-    response = [
-        TextContent(
-            type="text",  # Add required type field with value "text"
-            text=f"### Error executing tool: {tool_name}\n\n"
-                 f"**Type**: {error_type}\n\n"
-                 f"**Message**: {error_message}\n\n"
-                 f"Please check your Okta credentials and permissions, "
-                 f"or try again with different parameters."
-        )
-    ]
+    response = {
+        "error": error_type,
+        "message": error_message,
+        "tool": tool_name,
+        "details": f"Error executing tool: {tool_name}. "
+                  f"Type: {error_type}. "
+                  f"Message: {error_message}. "
+                  f"Please check your Okta credentials and permissions, "
+                  f"or try again with different parameters."
+    }
     
     logger.error(f"Error in tool {tool_name}: {error_type} - {error_message}")
     return response
 
 
-def handle_okta_result(result: Dict[str, Any], tool_name: str) -> Union[Any, List[TextContent]]:
+def handle_okta_result(result: Dict[str, Any], tool_name: str) -> Union[Any, Dict[str, Any]]:
     """Handle a result from an Okta API call, converting errors to friendly responses.
     
     Args:
@@ -80,7 +80,7 @@ def handle_okta_result(result: Dict[str, Any], tool_name: str) -> Union[Any, Lis
         tool_name: Name of the tool that made the API call
         
     Returns:
-        Either the successful result or a formatted error response
+        Either the successful result or a formatted error dict
     """
     if is_error_result(result):
         if isinstance(result, Exception):

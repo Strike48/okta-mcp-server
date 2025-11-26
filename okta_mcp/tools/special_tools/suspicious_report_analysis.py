@@ -141,7 +141,7 @@ def register_login_risk_analysis_tools(server: FastMCP, okta_client: OktaMcpClie
                     "limit": "10"
                 }
                 
-                raw_response = await okta_client.client.get_logs(params)
+                raw_response = await okta_client.client.get_logs(**params)
                 logs_data, resp, err = normalize_okta_response(raw_response)
                 
                 if err or not logs_data:
@@ -184,7 +184,7 @@ def register_login_risk_analysis_tools(server: FastMCP, okta_client: OktaMcpClie
             
             for i, event in enumerate(login_events):
                 # Convert event to dict if it's an object
-                event_dict = event.as_dict() if hasattr(event, 'as_dict') else event
+                event_dict = event.to_dict() if hasattr(event, 'to_dict') else event
                 event_data = extract_login_event_data(event_dict, i + 1)
                 login_behavior_data.append(event_data)
             
@@ -479,7 +479,7 @@ async def find_user(okta_client: OktaMcpClient, user_identifier: str) -> Optiona
             raw_response = await okta_client.client.get_user(user_identifier)
             user, resp, err = normalize_okta_response(raw_response)
             if not err and user:
-                return user.as_dict() if hasattr(user, 'as_dict') else user
+                return user.to_dict() if hasattr(user, 'to_dict') else user
         except Exception:
             pass
     
@@ -495,7 +495,7 @@ async def find_user(okta_client: OktaMcpClient, user_identifier: str) -> Optiona
         users, resp, err = normalize_okta_response(raw_response)
         if not err and users:
             first_user = users[0]
-            return first_user.as_dict() if hasattr(first_user, 'as_dict') else first_user
+            return first_user.to_dict() if hasattr(first_user, 'to_dict') else first_user
             
     except Exception:
         pass
@@ -508,7 +508,7 @@ async def find_user(okta_client: OktaMcpClient, user_identifier: str) -> Optiona
         if not err and users:
             # Look for exact match on email or login
             for user in users:
-                user_dict = user.as_dict() if hasattr(user, 'as_dict') else user
+                user_dict = user.to_dict() if hasattr(user, 'to_dict') else user
                 profile = user_dict.get("profile", {})
                 if (profile.get("email", "").lower() == user_identifier.lower() or
                     profile.get("login", "").lower() == user_identifier.lower()):
@@ -516,7 +516,7 @@ async def find_user(okta_client: OktaMcpClient, user_identifier: str) -> Optiona
             
             # Return first match if no exact match
             first_user = users[0]
-            return first_user.as_dict() if hasattr(first_user, 'as_dict') else first_user
+            return first_user.to_dict() if hasattr(first_user, 'to_dict') else first_user
             
     except Exception:
         pass

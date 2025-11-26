@@ -83,7 +83,7 @@ def register_user_tools(server: FastMCP, okta_client: OktaMcpClient):
                 logger.info(f"Executing Okta API request with params: {params}")
             
             # Execute single Okta API request (no pagination)
-            raw_response = await okta_client.client.list_users(params)
+            raw_response = await okta_client.client.list_users(**params)
             users, resp, err = normalize_okta_response(raw_response)
             
             if err:
@@ -104,7 +104,7 @@ def register_user_tools(server: FastMCP, okta_client: OktaMcpClient):
             
             # Format and return results
             result = {
-                "users": [user.as_dict() for user in all_users],
+                "users": [user.to_dict() for user in all_users],
                 "summary": {
                     "returned_count": len(all_users),
                     "max_requested": max_results,
@@ -164,7 +164,7 @@ def register_user_tools(server: FastMCP, okta_client: OktaMcpClient):
                 logger.error(f"Error getting user {user_id}: {err}")
                 return handle_okta_result(err, "get_user")
             
-            result = user.as_dict()
+            result = user.to_dict()
             
             if ctx:
                 logger.info(f"Successfully retrieved user data for {user_id}")
@@ -234,7 +234,7 @@ def register_user_tools(server: FastMCP, okta_client: OktaMcpClient):
                 await ctx.report_progress(100, 100)
             
             result = {
-                "groups": [group.as_dict() for group in groups] if groups else [],
+                "groups": [group.to_dict() for group in groups] if groups else [],
                 "total_groups": len(groups) if groups else 0
             }
             
@@ -296,7 +296,7 @@ def register_user_tools(server: FastMCP, okta_client: OktaMcpClient):
             if show_all:
                 params['showAll'] = True
                 
-            raw_response = await okta_client.client.list_app_links(user_id, params)
+            raw_response = await okta_client.client.list_app_links(user_id, **params)
             app_links, resp, err = normalize_okta_response(raw_response)
             
             if err:
@@ -308,7 +308,7 @@ def register_user_tools(server: FastMCP, okta_client: OktaMcpClient):
                 await ctx.report_progress(100, 100)
             
             result = {
-                "app_links": [app_link.as_dict() for app_link in app_links] if app_links else [],
+                "app_links": [app_link.to_dict() for app_link in app_links] if app_links else [],
                 "total_results": len(app_links) if app_links else 0
             }
             
@@ -377,7 +377,7 @@ def register_user_tools(server: FastMCP, okta_client: OktaMcpClient):
                 await ctx.report_progress(100, 100)
             
             result = {
-                "factors": [factor.as_dict() for factor in factors] if factors else [],
+                "factors": [factor.to_dict() for factor in factors] if factors else [],
                 "total_factors": len(factors) if factors else 0
             }
             

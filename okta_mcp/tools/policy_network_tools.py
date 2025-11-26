@@ -108,7 +108,7 @@ def register_policy_tools(server: FastMCP, okta_client: OktaMcpClient):
                 await ctx.report_progress(50, 100)
             
             # Execute Okta API request
-            raw_response = await okta_client.client.list_policy_rules(policy_id, params)
+            raw_response = await okta_client.client.list_policy_rules(policy_id, **params)
             rules, resp, err = normalize_okta_response(raw_response)
             
             if err:
@@ -122,7 +122,7 @@ def register_policy_tools(server: FastMCP, okta_client: OktaMcpClient):
                 await ctx.report_progress(100, 100)
             
             return {
-                "rules": [rule.as_dict() for rule in rules] if rules else [],
+                "rules": [rule.to_dict() for rule in rules] if rules else [],
                 "policy_id": policy_id,
                 "total_rules": len(rules) if rules else 0
             }
@@ -358,7 +358,7 @@ def register_policy_tools(server: FastMCP, okta_client: OktaMcpClient):
                 await ctx.report_progress(50, 100)
             
             # Execute Okta API request
-            raw_response = await okta_client.client.list_network_zones(params)
+            raw_response = await okta_client.client.list_network_zones(**params)
             zones, resp, err = normalize_okta_response(raw_response)
             
             if err:
@@ -372,7 +372,7 @@ def register_policy_tools(server: FastMCP, okta_client: OktaMcpClient):
                 await ctx.report_progress(100, 100)
             
             return {
-                "zones": [zone.as_dict() for zone in zones] if zones else [],
+                "zones": [zone.to_dict() for zone in zones] if zones else [],
                 "total_zones": len(zones) if zones else 0
             }
             

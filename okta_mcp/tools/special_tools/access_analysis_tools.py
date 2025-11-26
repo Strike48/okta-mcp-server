@@ -166,7 +166,7 @@ def register_access_analysis_tools(server: FastMCP, okta_client: OktaMcpClient):
                     if not err and factors:
                         result["users_registered_factors"] = []
                         for factor in factors:
-                            factor_dict = factor.as_dict() if hasattr(factor, 'as_dict') else factor
+                            factor_dict = factor.to_dict() if hasattr(factor, 'to_dict') else factor
                             result["users_registered_factors"].append({
                                 "id": factor_dict.get("id"),
                                 "type": factor_dict.get("factorType"),
@@ -232,7 +232,7 @@ def register_access_analysis_tools(server: FastMCP, okta_client: OktaMcpClient):
                     policy, resp, err = normalize_okta_response(raw_response)
                     
                     if not err and policy:
-                        policy_dict = policy.as_dict() if hasattr(policy, 'as_dict') else policy
+                        policy_dict = policy.to_dict() if hasattr(policy, 'to_dict') else policy
                         result["access_policy"] = {
                             "id": policy_dict.get("id"),
                             "name": policy_dict.get("name"),
@@ -248,7 +248,7 @@ def register_access_analysis_tools(server: FastMCP, okta_client: OktaMcpClient):
                             result["policy_rules"] = []
                             
                             for rule in rules:
-                                rule_dict = rule.as_dict() if hasattr(rule, 'as_dict') else rule
+                                rule_dict = rule.to_dict() if hasattr(rule, 'to_dict') else rule
                                 
                                 rule_info = {
                                     "id": rule_dict.get("id"),
@@ -445,7 +445,7 @@ async def fetch_zone_details(okta_client: OktaMcpClient, zone_id: str) -> Dict[s
         zone, resp, err = normalize_okta_response(raw_response)
         
         if not err and zone:
-            zone_dict = zone.as_dict() if hasattr(zone, 'as_dict') else zone
+            zone_dict = zone.to_dict() if hasattr(zone, 'to_dict') else zone
             return {
                 "id": zone_dict.get("id", zone_id),
                 "name": zone_dict.get("name", f"Zone {zone_id}"),
@@ -469,7 +469,7 @@ async def fetch_user_details(okta_client: OktaMcpClient, user_id: str) -> Dict[s
         user, resp, err = normalize_okta_response(raw_response)
         
         if not err and user:
-            user_dict = user.as_dict() if hasattr(user, 'as_dict') else user
+            user_dict = user.to_dict() if hasattr(user, 'to_dict') else user
             profile = user_dict.get("profile", {})
             return {
                 "id": user_dict.get("id", user_id),
@@ -494,7 +494,7 @@ async def fetch_group_details(okta_client: OktaMcpClient, group_id: str) -> Dict
         group, resp, err = normalize_okta_response(raw_response)
         
         if not err and group:
-            group_dict = group.as_dict() if hasattr(group, 'as_dict') else group
+            group_dict = group.to_dict() if hasattr(group, 'to_dict') else group
             profile = group_dict.get("profile", {})
             return {
                 "id": group_dict.get("id", group_id),
@@ -537,7 +537,7 @@ async def find_application(okta_client: OktaMcpClient, app_identifier: str) -> O
             raw_response = await okta_client.client.get_application(app_identifier)
             app, resp, err = normalize_okta_response(raw_response)
             if not err and app:
-                return app.as_dict() if hasattr(app, 'as_dict') else app
+                return app.to_dict() if hasattr(app, 'to_dict') else app
         except Exception:
             pass
     
@@ -549,7 +549,7 @@ async def find_application(okta_client: OktaMcpClient, app_identifier: str) -> O
         if not err and apps:
             # Look for exact match first
             for app in apps:
-                app_dict = app.as_dict() if hasattr(app, 'as_dict') else app
+                app_dict = app.to_dict() if hasattr(app, 'to_dict') else app
                 label = app_dict.get("label", "").lower()
                 name = app_dict.get("name", "").lower()
                 search_term = app_identifier.lower()
@@ -558,7 +558,7 @@ async def find_application(okta_client: OktaMcpClient, app_identifier: str) -> O
             
             # Return first match if no exact match
             first_app = apps[0]
-            return first_app.as_dict() if hasattr(first_app, 'as_dict') else first_app
+            return first_app.to_dict() if hasattr(first_app, 'to_dict') else first_app
             
     except Exception:
         pass
@@ -573,7 +573,7 @@ async def find_application(okta_client: OktaMcpClient, app_identifier: str) -> O
             
             # Search for partial matches
             for app in apps:
-                app_dict = app.as_dict() if hasattr(app, 'as_dict') else app
+                app_dict = app.to_dict() if hasattr(app, 'to_dict') else app
                 label = app_dict.get("label", "").lower()
                 name = app_dict.get("name", "").lower()
                 
@@ -596,7 +596,7 @@ async def find_user(okta_client: OktaMcpClient, user_identifier: str) -> Optiona
             raw_response = await okta_client.client.get_user(user_identifier)
             user, resp, err = normalize_okta_response(raw_response)
             if not err and user:
-                return user.as_dict() if hasattr(user, 'as_dict') else user
+                return user.to_dict() if hasattr(user, 'to_dict') else user
         except Exception:
             pass
     
@@ -612,7 +612,7 @@ async def find_user(okta_client: OktaMcpClient, user_identifier: str) -> Optiona
         users, resp, err = normalize_okta_response(raw_response)
         if not err and users:
             first_user = users[0]
-            return first_user.as_dict() if hasattr(first_user, 'as_dict') else first_user
+            return first_user.to_dict() if hasattr(first_user, 'to_dict') else first_user
             
     except Exception:
         pass
@@ -625,7 +625,7 @@ async def find_user(okta_client: OktaMcpClient, user_identifier: str) -> Optiona
         if not err and users:
             # Look for exact match on email or login
             for user in users:
-                user_dict = user.as_dict() if hasattr(user, 'as_dict') else user
+                user_dict = user.to_dict() if hasattr(user, 'to_dict') else user
                 profile = user_dict.get("profile", {})
                 if (profile.get("email", "").lower() == user_identifier.lower() or
                     profile.get("login", "").lower() == user_identifier.lower()):
@@ -633,7 +633,7 @@ async def find_user(okta_client: OktaMcpClient, user_identifier: str) -> Optiona
             
             # Return first match if no exact match
             first_user = users[0]
-            return first_user.as_dict() if hasattr(first_user, 'as_dict') else first_user
+            return first_user.to_dict() if hasattr(first_user, 'to_dict') else first_user
             
     except Exception:
         pass
@@ -650,7 +650,7 @@ async def find_group(okta_client: OktaMcpClient, group_identifier: str) -> Optio
             raw_response = await okta_client.client.get_group(group_identifier)
             group, resp, err = normalize_okta_response(raw_response)
             if not err and group:
-                return group.as_dict() if hasattr(group, 'as_dict') else group
+                return group.to_dict() if hasattr(group, 'to_dict') else group
         except Exception:
             pass
     
@@ -662,14 +662,14 @@ async def find_group(okta_client: OktaMcpClient, group_identifier: str) -> Optio
         if not err and groups:
             # Look for exact match on group name
             for group in groups:
-                group_dict = group.as_dict() if hasattr(group, 'as_dict') else group
+                group_dict = group.to_dict() if hasattr(group, 'to_dict') else group
                 profile = group_dict.get("profile", {})
                 if profile.get("name", "").lower() == group_identifier.lower():
                     return group_dict
             
             # Return first match if no exact match
             first_group = groups[0]
-            return first_group.as_dict() if hasattr(first_group, 'as_dict') else first_group
+            return first_group.to_dict() if hasattr(first_group, 'to_dict') else first_group
             
     except Exception:
         pass
@@ -713,7 +713,7 @@ async def check_user_app_assignment(okta_client: OktaMcpClient, app_id: str, use
             user_group_ids = []
             
             for group in user_groups_data:
-                group_dict = group.as_dict() if hasattr(group, 'as_dict') else group
+                group_dict = group.to_dict() if hasattr(group, 'to_dict') else group
                 user_groups.append({
                     "id": group_dict.get("id"),
                     "name": group_dict.get("profile", {}).get("name")
@@ -729,7 +729,7 @@ async def check_user_app_assignment(okta_client: OktaMcpClient, app_id: str, use
             if not err and app_groups_data:
                 app_group_ids = set()
                 for group in app_groups_data:
-                    group_dict = group.as_dict() if hasattr(group, 'as_dict') else group
+                    group_dict = group.to_dict() if hasattr(group, 'to_dict') else group
                     app_group_ids.add(group_dict.get("id"))
                 
                 group_assignments = []
@@ -770,7 +770,7 @@ async def check_group_app_assignment(okta_client: OktaMcpClient, app_id: str, gr
         
         if not err and app_groups_data:
             for app_group in app_groups_data:
-                app_group_dict = app_group.as_dict() if hasattr(app_group, 'as_dict') else app_group
+                app_group_dict = app_group.to_dict() if hasattr(app_group, 'to_dict') else app_group
                 if app_group_dict.get("id") == group_id:
                     assignment_result.update({
                         "is_assigned": True,

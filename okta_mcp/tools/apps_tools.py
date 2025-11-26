@@ -112,7 +112,7 @@ def register_apps_tools(server: FastMCP, okta_client: OktaMcpClient):
                 await ctx.report_progress(25, 100)
             
             # Execute single Okta API request (no pagination)
-            raw_response = await okta_client.client.list_applications(params)
+            raw_response = await okta_client.client.list_applications(**params)
             apps, resp, err = normalize_okta_response(raw_response)
             
             if err:
@@ -131,7 +131,7 @@ def register_apps_tools(server: FastMCP, okta_client: OktaMcpClient):
             
             # Format and return results
             result = {
-                "applications": [app.as_dict() for app in all_apps],
+                "applications": [app.to_dict() for app in all_apps],
                 "summary": {
                     "returned_count": len(all_apps),
                     "limit": limit,
@@ -238,7 +238,7 @@ def register_apps_tools(server: FastMCP, okta_client: OktaMcpClient):
                 logger.info(f"Successfully retrieved application information")
                 await ctx.report_progress(100, 100)
             
-            return app.as_dict()
+            return app.to_dict()
             
         except anyio.ClosedResourceError:
             logger.warning("Client disconnected during get_okta_application. Server remains healthy.")
@@ -307,7 +307,7 @@ def register_apps_tools(server: FastMCP, okta_client: OktaMcpClient):
                 await ctx.report_progress(20, 100)
             
             # Execute Okta API request with full pagination
-            raw_response = await okta_client.client.list_application_users(app_id, params)
+            raw_response = await okta_client.client.list_application_users(app_id, **params)
             users, resp, err = normalize_okta_response(raw_response)
             
             if err:
@@ -354,7 +354,7 @@ def register_apps_tools(server: FastMCP, okta_client: OktaMcpClient):
                 await ctx.report_progress(100, 100)
             
             return {
-                "users": [user.as_dict() for user in all_users],
+                "users": [user.to_dict() for user in all_users],
                 "application_id": app_id,
                 "pagination": {
                     "total_pages": page_count,
@@ -431,7 +431,7 @@ def register_apps_tools(server: FastMCP, okta_client: OktaMcpClient):
                 await ctx.report_progress(20, 100)
             
             # Execute Okta API request with full pagination
-            raw_response = await okta_client.client.list_application_group_assignments(app_id, params)
+            raw_response = await okta_client.client.list_application_group_assignments(app_id, **params)
             groups, resp, err = normalize_okta_response(raw_response)
             
             if err:
@@ -478,7 +478,7 @@ def register_apps_tools(server: FastMCP, okta_client: OktaMcpClient):
                 await ctx.report_progress(100, 100)
             
             return {
-                "groups": [group.as_dict() for group in all_groups],
+                "groups": [group.to_dict() for group in all_groups],
                 "application_id": app_id,
                 "pagination": {
                     "total_pages": page_count,

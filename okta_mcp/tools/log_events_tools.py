@@ -119,7 +119,7 @@ def register_log_events_tools(server: FastMCP, okta_client: OktaMcpClient):
                 await ctx.report_progress(25, 100)
             
             # Execute Okta API request with full pagination
-            raw_response = await okta_client.client.get_logs(params)
+            raw_response = await okta_client.client.get_logs(**params)
             log_events, resp, err = normalize_okta_response(raw_response)
             
             if err:
@@ -143,8 +143,8 @@ def register_log_events_tools(server: FastMCP, okta_client: OktaMcpClient):
                         logger.error(f"Error during pagination: {next_err}")
                         break
                         
-                    # Process valid log events
-                    valid_logs = [log for log in next_logs if log and hasattr(log, 'as_dict')]
+                        # Process valid log events
+                    valid_logs = [log for log in next_logs if log and hasattr(log, 'to_dict')]
                     
                     if valid_logs:
                         all_log_events.extend(valid_logs)
@@ -167,7 +167,7 @@ def register_log_events_tools(server: FastMCP, okta_client: OktaMcpClient):
                 await ctx.report_progress(100, 100)
             
             return {
-                "log_events": [event.as_dict() for event in all_log_events],
+                "log_events": [event.to_dict() for event in all_log_events],
                 "pagination": {
                     "total_pages": page_count,
                     "total_results": len(all_log_events)
