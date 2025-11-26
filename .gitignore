@@ -17,3 +17,5 @@ clients/event-stream-monitor.py
 clients/mcp-*.py
 test_*
 okta_mcp/main.py
+*env*
+uv.lock
