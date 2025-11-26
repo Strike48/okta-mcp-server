@@ -109,7 +109,7 @@ def register_group_tools(server: FastMCP, okta_client: OktaMcpClient):
                 await ctx.report_progress(50, 100)
             
             # Execute single Okta API request (no pagination)
-            raw_response = await okta_client.client.list_groups(params)
+            raw_response = await okta_client.client.list_groups(**params)
             groups, resp, err = normalize_okta_response(raw_response)
             
             if err:
@@ -133,7 +133,7 @@ def register_group_tools(server: FastMCP, okta_client: OktaMcpClient):
             
             # Format and return results
             result = {
-                "groups": [group.as_dict() for group in all_groups],
+                "groups": [group.to_dict() for group in all_groups],
                 "summary": {
                     "returned_count": len(all_groups),
                     "max_requested": max_results,
@@ -240,7 +240,7 @@ def register_group_tools(server: FastMCP, okta_client: OktaMcpClient):
                 await ctx.info(f"Successfully retrieved group data for {group_id}")
                 await ctx.report_progress(100, 100)
             
-            return group.as_dict()
+            return group.to_dict()
             
         except anyio.ClosedResourceError:
             logger.warning("Client disconnected during get_okta_group. Server remains healthy.")
@@ -328,7 +328,7 @@ def register_group_tools(server: FastMCP, okta_client: OktaMcpClient):
                 await ctx.report_progress(40, 100)
                 
             # Execute Okta API request with full pagination
-            raw_response = await okta_client.client.list_group_users(group_id, params)
+            raw_response = await okta_client.client.list_group_users(group_id, **params)
             users, resp, err = normalize_okta_response(raw_response)
             
             if err:
@@ -377,7 +377,7 @@ def register_group_tools(server: FastMCP, okta_client: OktaMcpClient):
                 await ctx.report_progress(100, 100)
             
             return {
-                "users": [user.as_dict() for user in all_users],
+                "users": [user.to_dict() for user in all_users],
                 "group_id": group_id,
                 "pagination": {
                     "total_pages": page_count,
