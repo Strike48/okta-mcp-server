@@ -87,7 +87,6 @@ def register_policy_tools(server: FastMCP, okta_client: OktaMcpClient):
         try:
             logger.info("SERVER: Executing list_okta_policy_rules")
             if ctx:
-                await ctx.info("Executing list_okta_policy_rules")
                 await ctx.report_progress(10, 100)
             
             # Validate input
@@ -96,15 +95,15 @@ def register_policy_tools(server: FastMCP, okta_client: OktaMcpClient):
             
             policy_id = policy_id.strip()
             
+            logger.info(f"Listing rules for policy: {policy_id}")
             if ctx:
-                await ctx.info(f"Listing rules for policy: {policy_id}")
                 await ctx.report_progress(30, 100)
             
             # Prepare request parameters
             params = {'limit': 50}
             
+            logger.info(f"Executing Okta API request with params: {params}")
             if ctx:
-                await ctx.info(f"Executing Okta API request with params: {params}")
                 await ctx.report_progress(50, 100)
             
             # Execute Okta API request
@@ -113,12 +112,11 @@ def register_policy_tools(server: FastMCP, okta_client: OktaMcpClient):
             
             if err:
                 logger.error(f"Error listing rules for policy {policy_id}: {err}")
-                if ctx:
-                    await ctx.error(f"Error listing rules for policy {policy_id}: {err}")
+                logger.error(f"Error listing rules for policy {policy_id}: {err}")
                 return handle_okta_result(err, "list_policy_rules")
             
+            logger.info(f"Retrieved {len(rules) if rules else 0} policy rules")
             if ctx:
-                await ctx.info(f"Retrieved {len(rules) if rules else 0} policy rules")
                 await ctx.report_progress(100, 100)
             
             return {
@@ -143,8 +141,7 @@ def register_policy_tools(server: FastMCP, okta_client: OktaMcpClient):
                 }
             
             logger.exception(f"Error in list_policy_rules tool for policy_id {policy_id}")
-            if ctx:
-                await ctx.error(f"Error in list_policy_rules tool for policy_id {policy_id}: {str(e)}")
+            logger.error(f"Error in list_policy_rules tool for policy_id {policy_id}: {str(e)}")
             return handle_okta_result(e, "list_policy_rules")
         
     @server.tool()
@@ -204,7 +201,6 @@ def register_policy_tools(server: FastMCP, okta_client: OktaMcpClient):
         try:
             logger.info("SERVER: Executing get_okta_policy_rule")
             if ctx:
-                await ctx.info("Executing get_okta_policy_rule")
                 await ctx.report_progress(10, 100)
             
             # Validate inputs
@@ -216,8 +212,8 @@ def register_policy_tools(server: FastMCP, okta_client: OktaMcpClient):
             policy_id = policy_id.strip()
             rule_id = rule_id.strip()
             
+            logger.info(f"Getting rule {rule_id} for policy: {policy_id}")
             if ctx:
-                await ctx.info(f"Getting rule {rule_id} for policy: {policy_id}")
                 await ctx.report_progress(30, 100)
             
             # Get the Okta organization URL and API token
@@ -243,8 +239,8 @@ def register_policy_tools(server: FastMCP, okta_client: OktaMcpClient):
             # Make the direct API request
             url = f"{org_url}/api/v1/policies/{policy_id}/rules/{rule_id}"
             
+            logger.info(f"Making direct API call to: {url}")
             if ctx:
-                await ctx.info(f"Making direct API call to: {url}")
                 await ctx.report_progress(60, 100)
             
             response = await make_async_request(
@@ -254,8 +250,8 @@ def register_policy_tools(server: FastMCP, okta_client: OktaMcpClient):
                 json_data=None
             )
             
+            logger.info(f"Successfully retrieved rule information using direct API call")
             if ctx:
-                await ctx.info(f"Successfully retrieved rule information using direct API call")
                 await ctx.report_progress(100, 100)
             
             return response
@@ -276,8 +272,7 @@ def register_policy_tools(server: FastMCP, okta_client: OktaMcpClient):
                 }
             
             logger.exception(f"Error in get_policy_rule tool for policy_id {policy_id}, rule_id {rule_id}")
-            if ctx:
-                await ctx.error(f"Error in get_policy_rule tool for policy_id {policy_id}, rule_id {rule_id}: {str(e)}")
+            logger.error(f"Error in get_policy_rule tool for policy_id {policy_id}, rule_id {rule_id}: {str(e)}")
             return handle_okta_result(e, "get_policy_rule")    
         
     @server.tool()
@@ -340,11 +335,10 @@ def register_policy_tools(server: FastMCP, okta_client: OktaMcpClient):
         try:
             logger.info("SERVER: Executing list_okta_network_zones")
             if ctx:
-                await ctx.info("Executing list_okta_network_zones")
                 await ctx.report_progress(10, 100)
             
+            logger.info(f"Listing network zones with filter: {filter_type}")
             if ctx:
-                await ctx.info(f"Listing network zones with filter: {filter_type}")
                 await ctx.report_progress(30, 100)
             
             # Prepare request parameters
@@ -353,22 +347,32 @@ def register_policy_tools(server: FastMCP, okta_client: OktaMcpClient):
             if filter_type:
                 params['filter'] = filter_type
             
+            logger.info(f"Executing Okta API request with params: {params}")
             if ctx:
-                await ctx.info(f"Executing Okta API request with params: {params}")
                 await ctx.report_progress(50, 100)
             
             # Execute Okta API request
-            raw_response = await okta_client.client.list_network_zones(**params)
-            zones, resp, err = normalize_okta_response(raw_response)
-            
-            if err:
-                logger.error(f"Error listing network zones: {err}")
-                if ctx:
-                    await ctx.error(f"Error listing network zones: {err}")
-                return handle_okta_result(err, "list_network_zones")
+            try:
+                raw_response = await okta_client.client.list_network_zones(**params)
+                zones, resp, err = normalize_okta_response(raw_response)
+                
+                if err:
+                    logger.error(f"Error listing network zones: {err}")
+                    return handle_okta_result(err, "list_network_zones")
+            except Exception as e:
+                # Handle SDK validation errors
+                error_msg = str(e)
+                if 'ValidationError' in error_msg or 'validation error' in error_msg.lower():
+                    logger.warning(f"SDK validation error for network zones: {error_msg}")
+                    return {
+                        "zones": [],
+                        "total_zones": 0,
+                        "note": "SDK deserialization failed - this may indicate incompatible data in your Okta org"
+                    }
+                raise
             
             if ctx:
-                await ctx.info(f"Retrieved {len(zones) if zones else 0} network zones")
+                logger.info(f"Retrieved {len(zones) if zones else 0} network zones")
                 await ctx.report_progress(100, 100)
             
             return {
@@ -392,6 +396,5 @@ def register_policy_tools(server: FastMCP, okta_client: OktaMcpClient):
                 }
             
             logger.exception(f"Error in list_network_zones tool")
-            if ctx:
-                await ctx.error(f"Error in list_network_zones tool: {str(e)}")
+            logger.error(f"Error in list_network_zones tool: {str(e)}")
             return handle_okta_result(e, "list_network_zones")

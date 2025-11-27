@@ -81,15 +81,14 @@ def register_group_tools(server: FastMCP, okta_client: OktaMcpClient):
         try:
             logger.info("SERVER: Executing list_okta_groups")
             if ctx:
-                await ctx.info("Executing list_okta_groups")
                 await ctx.report_progress(10, 100)
                 
             # Validate max_results parameter
             if max_results < 1 or max_results > 100:
                 raise ValueError("max_results must be between 1 and 100")
             
+            logger.info(f"Listing groups with query={query}, search={search}, max_results={max_results}")
             if ctx:
-                await ctx.info(f"Listing groups with query={query}, search={search}, max_results={max_results}")
                 await ctx.report_progress(30, 100)
             
             # Prepare request parameters
@@ -105,7 +104,7 @@ def register_group_tools(server: FastMCP, okta_client: OktaMcpClient):
                 params['filter'] = filter_type
             
             if ctx:
-                await ctx.info(f"Executing Okta API request with params: {params}")
+                logger.info(f"Executing Okta API request with params: {params}")
                 await ctx.report_progress(50, 100)
             
             # Execute single Okta API request (no pagination)
@@ -125,11 +124,11 @@ def register_group_tools(server: FastMCP, okta_client: OktaMcpClient):
             all_groups = groups[:max_results] if groups else []
             
             if ctx:
-                await ctx.info(f"Retrieved {len(all_groups)} groups (limited to {max_results})")
+                logger.info(f"Retrieved {len(all_groups)} groups (limited to {max_results})")
                 await ctx.report_progress(100, 100)
             
             # Determine if there are more results available
-            has_more = resp and resp.has_next() and len(groups) == params['limit']
+            has_more = resp and hasattr(resp, 'has_next') and resp.has_next() and len(groups) == params['limit']
             
             # Format and return results
             result = {
@@ -341,7 +340,7 @@ def register_group_tools(server: FastMCP, okta_client: OktaMcpClient):
             all_users = users if users else []
             page_count = 1
             
-            while resp and resp.has_next():
+            while resp and hasattr(resp, 'has_next') and resp.has_next():
                 if ctx:
                     await ctx.info(f"Retrieving page {page_count + 1}...")
                     await ctx.report_progress(min(50 + (page_count * 5), 90), 100)

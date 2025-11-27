@@ -112,14 +112,16 @@ def register_log_events_tools(server: FastMCP, okta_client: OktaMcpClient):
                 # Validate sort order
                 if sort_order.upper() not in ['ASCENDING', 'DESCENDING']:
                     raise ValueError("Sort order must be either 'ASCENDING' or 'DESCENDING'")
-                params['sortOrder'] = sort_order.upper()
+                # SDK uses snake_case parameter name
+                params['sort_order'] = sort_order.upper()
             
             if ctx:
                 logger.info(f"Executing Okta API request with params: {params}")
                 await ctx.report_progress(25, 100)
             
             # Execute Okta API request with full pagination
-            raw_response = await okta_client.client.get_logs(**params)
+            # The Okta SDK uses list_log_events for the SystemLog API
+            raw_response = await okta_client.client.list_log_events(**params)
             log_events, resp, err = normalize_okta_response(raw_response)
             
             if err:
