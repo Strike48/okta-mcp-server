@@ -30,10 +30,10 @@ def parse_args():
                       help="Acknowledge security risks of network transports")
     
     # HTTP configuration
-    parser.add_argument("--host", default="127.0.0.1", 
-                      help="Host to bind to for HTTP transport (default: 127.0.0.1)")
-    parser.add_argument("--port", type=int, default=3000, 
-                      help="Port for HTTP transport (default: 3000)")
+    parser.add_argument("--host", default=os.getenv("HOST", "127.0.0.1"), 
+                      help="Host to bind to for HTTP transport (default: 127.0.0.1, or HOST env var)")
+    parser.add_argument("--port", type=int, default=int(os.getenv("PORT", "3000")), 
+                      help="Port for HTTP transport (default: 3000, or PORT env var)")
     
     # General configuration
     parser.add_argument("--log-level", default="INFO", 

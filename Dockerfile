@@ -39,14 +39,16 @@ USER appuser
 # SSE variant (deprecated)
 FROM base AS sse
 ENV TRANSPORT_TYPE=sse
+ENV PORT=3000
 EXPOSE 3000
-ENTRYPOINT ["python", "main.py", "--sse", "--host=0.0.0.0", "--port=3000", "--iunderstandtherisks"]
+ENTRYPOINT ["sh", "-c", "python main.py --sse --host=0.0.0.0 --port=${PORT} --iunderstandtherisks"]
 
 # HTTP variant (current standard for web)
 FROM base AS http
 ENV TRANSPORT_TYPE=http
+ENV PORT=3000
 EXPOSE 3000
-ENTRYPOINT ["python", "main.py", "--http", "--host=0.0.0.0", "--port=3000", "--iunderstandtherisks"]
+ENTRYPOINT ["sh", "-c", "python main.py --http --host=0.0.0.0 --port=${PORT} --iunderstandtherisks"]
 
 # STDIO variant (recommended) - LAST STAGE = DEFAULT
 FROM base AS stdio

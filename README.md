@@ -340,12 +340,20 @@ The Okta MCP Server supports multiple transport protocols:
 
 **Starting the Streamable HTTP Server:**
 ```bash
-# Start server with explicit risk acknowledgment
+# Start server with explicit risk acknowledgment (default port 3000)
 python main.py --http --iunderstandtherisks
 
-# Server will start on http://localhost:3000/mcp
+# Or with custom port via environment variable
+PORT=8080 python main.py --http --iunderstandtherisks
+
+# Or with command-line argument
+python main.py --http --port=8080 --iunderstandtherisks
+
+# Server will start on http://localhost:3000/mcp (or your custom port)
 # Connect using streamable HTTP compatible clients
 ```
+
+> 💡 **Port Configuration**: The server port defaults to 3000 but can be customized via the `PORT` environment variable or `--port` argument. See [Port Configuration Guide](docs/PORT_CONFIGURATION.md) for more details.
 
 **Features:**
 - ✅ **Real-time streaming** - Live progress updates during operations
@@ -498,6 +506,24 @@ docker run -d --name okta-mcp-sse \
 
 # Configure your MCP client to connect to http://localhost:3000/sse
 ```
+
+**Custom Port Configuration:**
+
+The server port is configurable via the `PORT` environment variable (default: 3000):
+
+```bash
+# Run on custom port (e.g., 8080)
+docker run -d --name okta-mcp-http \
+  -p 8080:8080 \
+  -e PORT=8080 \
+  -e OKTA_API_TOKEN=your_api_token \
+  -e OKTA_CLIENT_ORGURL=https://your-org.okta.com \
+  fctrid/okta-mcp-server:http
+
+# Connect to http://localhost:8080/mcp
+```
+
+> 📘 **Note**: When using a custom port, ensure both the `-p` port mapping and the `PORT` environment variable match. See [Port Configuration Guide](docs/PORT_CONFIGURATION.md) for more details.
 
 **Building Images Locally:**
 ```bash
