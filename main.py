@@ -30,10 +30,10 @@ def parse_args():
                       help="Acknowledge security risks of network transports")
     
     # HTTP configuration
-    parser.add_argument("--host", default="127.0.0.1", 
-                      help="Host to bind to for HTTP transport (default: 127.0.0.1)")
-    parser.add_argument("--port", type=int, default=3000, 
-                      help="Port for HTTP transport (default: 3000)")
+    parser.add_argument("--host", default=os.getenv("HOST", "127.0.0.1"), 
+                      help="Host to bind to for HTTP transport (default: 127.0.0.1, or HOST env var)")
+    parser.add_argument("--port", type=int, default=int(os.getenv("PORT", "3000")), 
+                      help="Port for HTTP transport (default: 3000, or PORT env var)")
     
     # General configuration
     parser.add_argument("--log-level", default="INFO", 
@@ -63,12 +63,17 @@ def main():
     
     if missing_vars:
         logger.warning(f"Missing Okta environment variables: {', '.join(missing_vars)}")
-        logger.warning("Server will start but Okta tools will require configuration to work.")
-        logger.warning("Create a .env file with:")
-        logger.warning("OKTA_CLIENT_ORGURL=https://your-org.okta.com")
-        logger.warning("OKTA_API_TOKEN=your_api_token_here")
-        logger.warning("LOG_LEVEL=INFO")
-        logger.warning("OKTA_CONCURRENT_LIMIT=15")
+        logger.warning("Server will start. Okta tools will work if credentials are provided via:")
+        logger.warning("")
+        logger.warning("Option 1: HTTP Headers (recommended for dynamic configuration)")
+        logger.warning("  X-Okta-Domain: https://your-org.okta.com")
+        logger.warning("  X-Okta-Token: your_api_token_here")
+        logger.warning("")
+        logger.warning("Option 2: Environment Variables (.env file)")
+        logger.warning("  OKTA_CLIENT_ORGURL=https://your-org.okta.com")
+        logger.warning("  OKTA_API_TOKEN=your_api_token_here")
+        logger.warning("  LOG_LEVEL=INFO")
+        logger.warning("  OKTA_CONCURRENT_LIMIT=15")
         logger.warning("")
         logger.warning("Generate an API token in Okta: Admin > Security > API > Tokens")
     

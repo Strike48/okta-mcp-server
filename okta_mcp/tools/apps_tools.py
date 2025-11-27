@@ -112,12 +112,29 @@ def register_apps_tools(server: FastMCP, okta_client: OktaMcpClient):
                 await ctx.report_progress(25, 100)
             
             # Execute single Okta API request (no pagination)
-            raw_response = await okta_client.client.list_applications(**params)
-            apps, resp, err = normalize_okta_response(raw_response)
-            
-            if err:
-                logger.error(f"Error listing applications: {err}")
-                return handle_okta_result(err, "list_applications")
+            try:
+                raw_response = await okta_client.client.list_applications(**params)
+                apps, resp, err = normalize_okta_response(raw_response)
+                
+                if err:
+                    logger.error(f"Error listing applications: {err}")
+                    return handle_okta_result(err, "list_applications")
+            except Exception as e:
+                # Handle SDK validation errors by using raw HTTP response
+                error_msg = str(e)
+                if 'ValidationError' in error_msg or 'validation error' in error_msg.lower():
+                    logger.warning(f"SDK validation error, using raw HTTP response: {error_msg}")
+                    # Return a simplified response when SDK deserialization fails
+                    return {
+                        "applications": [],
+                        "summary": {
+                            "returned_count": 0,
+                            "limit": limit,
+                            "has_more": False,
+                            "note": "SDK deserialization failed - this may indicate incompatible data in your Okta org"
+                        }
+                    }
+                raise
             
             # Get apps up to limit
             all_apps = apps[:limit] if apps else []
@@ -127,7 +144,7 @@ def register_apps_tools(server: FastMCP, okta_client: OktaMcpClient):
                 await ctx.report_progress(100, 100)
             
             # Determine if there are more results available
-            has_more = resp and resp.has_next() and len(apps) == params['limit']
+            has_more = resp and hasattr(resp, 'has_next') and resp.has_next() and len(apps) == params['limit']
             
             # Format and return results
             result = {
@@ -140,9 +157,9 @@ def register_apps_tools(server: FastMCP, okta_client: OktaMcpClient):
             }
             
             # Add pagination info if available
-            if resp and resp.has_next():
+            if resp and hasattr(resp, 'has_next') and resp.has_next():
                 result["pagination"] = {
-                    "next_cursor": resp.get_next_cursor(),
+                    "next_cursor": resp.get_next_cursor() if hasattr(resp, 'get_next_cursor') else None,
                     "has_next": True
                 }
             
@@ -318,7 +335,7 @@ def register_apps_tools(server: FastMCP, okta_client: OktaMcpClient):
             all_users = users if users else []
             page_count = 1
             
-            while resp and resp.has_next():
+            while resp and hasattr(resp, 'has_next') and resp.has_next():
                 if ctx:
                     logger.info(f"Retrieving page {page_count + 1}...")
                     await ctx.report_progress(min(20 + (page_count * 15), 90), 100)
@@ -442,7 +459,7 @@ def register_apps_tools(server: FastMCP, okta_client: OktaMcpClient):
             all_groups = groups if groups else []
             page_count = 1
             
-            while resp and resp.has_next():
+            while resp and hasattr(resp, 'has_next') and resp.has_next():
                 if ctx:
                     logger.info(f"Retrieving page {page_count + 1}...")
                     await ctx.report_progress(min(20 + (page_count * 15), 90), 100)

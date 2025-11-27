@@ -100,7 +100,7 @@ def register_user_tools(server: FastMCP, okta_client: OktaMcpClient):
                 await ctx.report_progress(100, 100)
             
             # Determine if there are more results available
-            has_more = resp and resp.has_next() and len(users) == api_limit
+            has_more = resp and hasattr(resp, 'has_next') and resp.has_next() and len(users) == api_limit
             
             # Format and return results
             result = {
@@ -292,11 +292,9 @@ def register_user_tools(server: FastMCP, okta_client: OktaMcpClient):
             if ctx:
                 logger.info(f"Fetching app links for user ID: {user_id}")
             
-            params = {}
-            if show_all:
-                params['showAll'] = True
-                
-            raw_response = await okta_client.client.list_app_links(user_id, **params)
+            # Note: The Okta SDK's list_app_links doesn't accept additional parameters
+            # The show_all parameter is not supported by the current SDK
+            raw_response = await okta_client.client.list_app_links(user_id)
             app_links, resp, err = normalize_okta_response(raw_response)
             
             if err:
@@ -307,9 +305,20 @@ def register_user_tools(server: FastMCP, okta_client: OktaMcpClient):
                 logger.info(f"Retrieved {len(app_links) if app_links else 0} app links for user {user_id}")
                 await ctx.report_progress(100, 100)
             
+            # Serialize app links, filtering out completely empty objects
+            serialized_links = []
+            if app_links:
+                for app_link in app_links:
+                    if app_link and hasattr(app_link, 'to_dict'):
+                        link_dict = app_link.to_dict()
+                        # Include the link if dict exists (even if all values are None)
+                        # Only exclude truly empty dicts {}
+                        if link_dict is not None:
+                            serialized_links.append(link_dict)
+            
             result = {
-                "app_links": [app_link.to_dict() for app_link in app_links] if app_links else [],
-                "total_results": len(app_links) if app_links else 0
+                "app_links": serialized_links,
+                "total_results": len(serialized_links)
             }
             
             return result

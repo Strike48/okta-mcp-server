@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "okta-mcp.fullname" . }}
+  labels:
+    {{- include "okta-mcp.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      {{- include "okta-mcp.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "okta-mcp.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "okta-mcp.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ include "okta-mcp.imageTag" . }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.config.mcpPort }}
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ include "okta-mcp.fullname" . }}
+          {{- if .Values.secrets.enabled }}
+          env:
+            - name: OKTA_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "okta-mcp.fullname" . }}-secrets
+                  key: okta-api-token
+            {{- if .Values.secrets.oktaClientSecret }}
+            - name: OKTA_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "okta-mcp.fullname" . }}-secrets
+                  key: okta-client-secret
+            {{- end }}
+            {{- if .Values.secrets.modelApiKey }}
+            - name: MODEL_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "okta-mcp.fullname" . }}-secrets
+                  key: model-api-key
+            {{- end }}
+          {{- end }}
+          {{- with .Values.healthCheck.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.healthCheck.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.healthCheck.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+

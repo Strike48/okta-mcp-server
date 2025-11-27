@@ -1,0 +1,175 @@
+# Default values for okta-mcp
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 2
+
+image:
+  repository: ghcr.io/strike48/okta-mcp-server
+  pullPolicy: IfNotPresent
+  tag: "latest"
+  # Specify which Docker variant to use: stdio, http, or sse
+  variant: "http"  # Options: stdio, http, sse
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1001
+  runAsGroup: 1001
+  fsGroup: 1001
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false # Needed for Python runtime
+  runAsNonRoot: true
+  runAsUser: 1001
+  capabilities:
+    drop:
+      - ALL
+
+service:
+  type: ClusterIP
+  port: 3000  # External service port
+  targetPort: http  # References the container port from config.mcpPort
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800 # 3 hours
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: okta-mcp.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Okta MCP Server Configuration
+config:
+  pythonEnv: production
+  logLevel: info
+  enableRequestLogging: false
+  mcpPort: 3000  # Container port (configurable via PORT env var)
+  mcpHost: "0.0.0.0"  # Container host binding
+  healthCheckEnabled: true
+  shutdownTimeout: 30000
+  
+  # Okta Configuration
+  oktaDomain: ""                    # Required: Your Okta domain (e.g., dev-12345.okta.com)
+  oktaApiToken: ""                  # Required: Set via secret or environment
+  oktaClientId: ""                  # Optional: OAuth client ID
+  oktaClientSecret: ""              # Optional: OAuth client secret (use secret)
+  oktaAuthMethod: "api_token"       # Options: api_token, oauth
+  
+  # Model Provider Configuration
+  modelProvider: "openai"           # Options: openai, anthropic, groq
+  modelName: "gpt-4"                # Model to use for AI operations
+  apiKey: ""                        # API key for model provider (use secret)
+  
+  # Transport Configuration
+  transportType: "http"             # Options: stdio, http, sse
+  iUnderstandTheRisks: "false"      # Set to "true" for SSE transport
+
+# Health check configuration
+# Using TCP socket checks since FastMCP doesn't expose a /health endpoint
+healthCheck:
+  livenessProbe:
+    tcpSocket:
+      port: http
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  readinessProbe:
+    tcpSocket:
+      port: http
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+  startupProbe:
+    tcpSocket:
+      port: http
+    initialDelaySeconds: 10
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 10
+
+# Pod Disruption Budget
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+# Network Policy
+networkPolicy:
+  enabled: true
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 3000
+  egress:
+    # DNS
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # HTTPS to Okta API and Model Providers
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 443
+
+# Secrets (recommended to use external secret management)
+secrets:
+  enabled: false
+  # If enabled, create a Kubernetes secret with these values
+  # Otherwise, provide via external secret management (e.g., Vault, AWS Secrets Manager)
+  oktaApiToken: ""
+  oktaClientSecret: ""
+  modelApiKey: ""
+
