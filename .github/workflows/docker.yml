@@ -42,20 +42,6 @@ jobs:
                   echo "date_tag=${DATE_TAG}" >> $GITHUB_OUTPUT
                   echo "branch=${BRANCH}" >> $GITHUB_OUTPUT
 
-            - name: Build and push multi-arch image (stdio variant)
-              uses: docker/build-push-action@v5
-              with:
-                  context: .
-                  platforms: linux/amd64,linux/arm64
-                  target: stdio
-                  push: true
-                  tags: |
-                      ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.date_tag }}
-                      ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.branch }}
-                      ${{ steps.meta.outputs.image }}:stdio-${{ steps.meta.outputs.branch }}
-                  cache-from: type=gha
-                  cache-to: type=gha,mode=max
-
             - name: Build and push multi-arch image (http variant)
               uses: docker/build-push-action@v5
               with:
@@ -66,32 +52,10 @@ jobs:
                   tags: |
                       ${{ steps.meta.outputs.image }}:http-${{ steps.meta.outputs.date_tag }}
                       ${{ steps.meta.outputs.image }}:http-${{ steps.meta.outputs.branch }}
+                      ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.date_tag }}
+                      ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.branch }}
                   cache-from: type=gha
-
-            - name: Build and push multi-arch image (sse variant)
-              uses: docker/build-push-action@v5
-              with:
-                  context: .
-                  platforms: linux/amd64,linux/arm64
-                  target: sse
-                  push: true
-                  tags: |
-                      ${{ steps.meta.outputs.image }}:sse-${{ steps.meta.outputs.date_tag }}
-                      ${{ steps.meta.outputs.image }}:sse-${{ steps.meta.outputs.branch }}
-                  cache-from: type=gha
-
-            - name: Push latest tag for main branch
-              if: github.ref == 'refs/heads/main'
-              uses: docker/build-push-action@v5
-              with:
-                  context: .
-                  platforms: linux/amd64,linux/arm64
-                  target: stdio
-                  push: true
-                  tags: |
-                      ${{ steps.meta.outputs.image }}:latest
-                      ${{ steps.meta.outputs.image }}:stdio-latest
-                  cache-from: type=gha
+                  cache-to: type=gha,mode=max
 
             - name: Push latest http tag for main branch
               if: github.ref == 'refs/heads/main'
@@ -101,18 +65,9 @@ jobs:
                   platforms: linux/amd64,linux/arm64
                   target: http
                   push: true
-                  tags: ${{ steps.meta.outputs.image }}:http-latest
-                  cache-from: type=gha
-
-            - name: Push latest sse tag for main branch
-              if: github.ref == 'refs/heads/main'
-              uses: docker/build-push-action@v5
-              with:
-                  context: .
-                  platforms: linux/amd64,linux/arm64
-                  target: sse
-                  push: true
-                  tags: ${{ steps.meta.outputs.image }}:sse-latest
+                  tags: |
+                      ${{ steps.meta.outputs.image }}:http-latest
+                      ${{ steps.meta.outputs.image }}:latest
                   cache-from: type=gha
 
             - name: Summary
@@ -121,19 +76,15 @@ jobs:
                   echo "" >> $GITHUB_STEP_SUMMARY
                   echo "**Image:** \`${{ steps.meta.outputs.image }}\`" >> $GITHUB_STEP_SUMMARY
                   echo "**Platforms:** \`linux/amd64\`, \`linux/arm64\`" >> $GITHUB_STEP_SUMMARY
+                  echo "**Variant:** HTTP" >> $GITHUB_STEP_SUMMARY
                   echo "" >> $GITHUB_STEP_SUMMARY
                   echo "### Tags pushed:" >> $GITHUB_STEP_SUMMARY
-                  echo "- \`${{ steps.meta.outputs.date_tag }}\` (stdio default)" >> $GITHUB_STEP_SUMMARY
-                  echo "- \`${{ steps.meta.outputs.branch }}\` (stdio default)" >> $GITHUB_STEP_SUMMARY
-                  echo "- \`stdio-${{ steps.meta.outputs.branch }}\`" >> $GITHUB_STEP_SUMMARY
+                  echo "- \`${{ steps.meta.outputs.date_tag }}\`" >> $GITHUB_STEP_SUMMARY
+                  echo "- \`${{ steps.meta.outputs.branch }}\`" >> $GITHUB_STEP_SUMMARY
                   echo "- \`http-${{ steps.meta.outputs.date_tag }}\`" >> $GITHUB_STEP_SUMMARY
                   echo "- \`http-${{ steps.meta.outputs.branch }}\`" >> $GITHUB_STEP_SUMMARY
-                  echo "- \`sse-${{ steps.meta.outputs.date_tag }}\`" >> $GITHUB_STEP_SUMMARY
-                  echo "- \`sse-${{ steps.meta.outputs.branch }}\`" >> $GITHUB_STEP_SUMMARY
                   if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-                    echo "- \`latest\` (stdio)" >> $GITHUB_STEP_SUMMARY
-                    echo "- \`stdio-latest\`" >> $GITHUB_STEP_SUMMARY
+                    echo "- \`latest\`" >> $GITHUB_STEP_SUMMARY
                     echo "- \`http-latest\`" >> $GITHUB_STEP_SUMMARY
-                    echo "- \`sse-latest\`" >> $GITHUB_STEP_SUMMARY
                   fi
 
