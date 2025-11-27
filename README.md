@@ -360,6 +360,25 @@ cd clients
 python mcp-cli-streamable-client.py
 ```
 
+**🆕 HTTP Header-Based Authentication:**
+
+The server now supports passing Okta credentials via HTTP headers instead of environment variables. This is particularly useful for:
+- Multi-tenant deployments (different Okta orgs per request)
+- Integration with secret management systems
+- Elixir Matrix workflows and other dynamic configurations
+
+```bash
+# Pass credentials via HTTP headers
+curl -X POST http://localhost:3005/mcp \
+  -H "X-Okta-Domain: https://your-org.okta.com" \
+  -H "X-Okta-Token: your_api_token_here" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'
+```
+
+**Priority**: HTTP headers take precedence over environment variables, allowing per-request credential override.
+
+📖 **[Read Full Documentation](docs/HEADER_AUTHENTICATION.md)** for integration examples and use cases.
+
 #### 3. Remote HTTP Access - High Risk Advanced Use Only
 
 **⚠️ EXTREMELY DANGEROUS - READ CAREFULLY**

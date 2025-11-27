@@ -8,6 +8,18 @@ from okta.client import Client as OktaClient
 
 logger = logging.getLogger(__name__)
 
+# Import context vars for per-request credentials
+try:
+    from okta_mcp.utils.fastmcp_middleware_utils import (
+        okta_org_url_context,
+        okta_api_token_context
+    )
+except ImportError:
+    # Fallback if middleware utils not available
+    from contextvars import ContextVar
+    okta_org_url_context: ContextVar[str | None] = ContextVar('okta_org_url', default=None)
+    okta_api_token_context: ContextVar[str | None] = ContextVar('okta_api_token', default=None)
+
 class OktaMcpClient:
     """Wrapper around the Okta SDK client with rate limiting and error handling."""
     
@@ -31,18 +43,35 @@ class OktaMcpClient:
         return self._client
     
     def _initialize_client(self):
-        """Initialize the Okta client on demand."""
-        org_url = os.getenv('OKTA_CLIENT_ORGURL')
-        api_token = os.getenv('OKTA_API_TOKEN')
+        """Initialize the Okta client on demand.
+        
+        Checks for credentials in this order:
+        1. Request context (from HTTP headers via middleware)
+        2. Environment variables (traditional configuration)
+        """
+        # Try to get credentials from request context first (HTTP headers)
+        org_url = okta_org_url_context.get()
+        api_token = okta_api_token_context.get()
+        
+        # Fall back to environment variables if not in context
+        if not org_url:
+            org_url = os.getenv('OKTA_CLIENT_ORGURL')
+        if not api_token:
+            api_token = os.getenv('OKTA_API_TOKEN')
         
         if not org_url or not api_token:
             raise ValueError(
-                "Okta configuration required. Set OKTA_CLIENT_ORGURL and OKTA_API_TOKEN environment variables."
+                "Okta configuration required. Either:\n"
+                "1. Pass via HTTP headers: X-Okta-Domain and X-Okta-Token\n"
+                "2. Set environment variables: OKTA_CLIENT_ORGURL and OKTA_API_TOKEN"
             )
+        
+        # Determine source for logging
+        source = "HTTP headers" if okta_org_url_context.get() or okta_api_token_context.get() else "environment variables"
         
         self._client = create_okta_client(org_url, api_token)
         self._client_initialized = True
-        logger.info("Okta client initialized on demand")
+        logger.info(f"Okta client initialized from {source}")
     
     def update_rate_limit(self, endpoint: str, reset_seconds: int):
         """Update rate limit tracking for an endpoint.

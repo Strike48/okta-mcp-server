@@ -74,12 +74,29 @@ def create_server(enable_auth: bool = True):
             This server provides Okta Identity Cloud management capabilities.
             Use list_okta_users() to search and filter users with SCIM expressions.
             Use get_okta_user() to retrieve detailed user information.
-            All operations require proper Okta API credentials in environment variables.
+            
+            Credentials can be provided in two ways:
+            1. Via HTTP headers: X-Okta-Token and X-Okta-Domain (recommended for dynamic configs)
+            2. Via environment variables: OKTA_API_TOKEN and OKTA_CLIENT_ORGURL
             """,
             # Use built-in error masking instead of custom handling
             mask_error_details=False,  # Show detailed errors for debugging
             auth=auth_provider  # Add authentication if configured
         )
+        
+        # Register middleware for header-based authentication
+        from okta_mcp.utils.fastmcp_middleware_utils import (
+            OktaHeaderAuthMiddleware,
+            ConnectionMonitorMiddleware,
+            RateLimitHandlingMiddleware
+        )
+        
+        # Add middleware in order: headers first, then rate limiting, then connection monitoring
+        mcp.add_middleware(OktaHeaderAuthMiddleware())
+        mcp.add_middleware(RateLimitHandlingMiddleware())
+        mcp.add_middleware(ConnectionMonitorMiddleware())
+        
+        logger.info("Registered middleware: OktaHeaderAuth, RateLimitHandling, ConnectionMonitor")
         
         # Create Okta client wrapper (will initialize on demand)
         from okta_mcp.utils.okta_client import OktaMcpClient
