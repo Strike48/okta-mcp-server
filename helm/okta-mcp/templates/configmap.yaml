@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "okta-mcp.fullname" . }}
+  labels:
+    {{- include "okta-mcp.labels" . | nindent 4 }}
+data:
+  PYTHON_ENV: {{ .Values.config.pythonEnv | quote }}
+  LOG_LEVEL: {{ .Values.config.logLevel | quote }}
+  ENABLE_REQUEST_LOGGING: {{ .Values.config.enableRequestLogging | quote }}
+  MCP_PORT: {{ .Values.config.mcpPort | quote }}
+  PORT: {{ .Values.config.mcpPort | quote }}
+  MCP_HOST: {{ .Values.config.mcpHost | quote }}
+  HOST: {{ .Values.config.mcpHost | quote }}
+  HEALTH_CHECK_ENABLED: {{ .Values.config.healthCheckEnabled | quote }}
+  SHUTDOWN_TIMEOUT: {{ .Values.config.shutdownTimeout | quote }}
+  TRANSPORT_TYPE: {{ .Values.config.transportType | quote }}
+  AM_I_IN_A_DOCKER_CONTAINER: "Yes"
+  {{- if .Values.config.oktaDomain }}
+  OKTA_DOMAIN: {{ .Values.config.oktaDomain | quote }}
+  {{- end }}
+  {{- if .Values.config.oktaAuthMethod }}
+  OKTA_AUTH_METHOD: {{ .Values.config.oktaAuthMethod | quote }}
+  {{- end }}
+  {{- if .Values.config.oktaClientId }}
+  OKTA_CLIENT_ID: {{ .Values.config.oktaClientId | quote }}
+  {{- end }}
+  {{- if .Values.config.modelProvider }}
+  MODEL_PROVIDER: {{ .Values.config.modelProvider | quote }}
+  {{- end }}
+  {{- if .Values.config.modelName }}
+  MODEL_NAME: {{ .Values.config.modelName | quote }}
+  {{- end }}
+  {{- if .Values.config.iUnderstandTheRisks }}
+  I_UNDERSTAND_THE_RISKS: {{ .Values.config.iUnderstandTheRisks | quote }}
+  {{- end }}
+

@@ -1,0 +1,128 @@
+# Local Colima deployment values for okta-mcp
+# Simplified configuration for local development
+
+replicaCount: 1
+
+image:
+  repository: okta-mcp-server
+  pullPolicy: Never  # Use local image, don't pull from registry
+  tag: "http"
+  variant: "http"
+
+imagePullSecrets: []
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1001
+  runAsGroup: 1001
+  fsGroup: 1001
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+  runAsUser: 1001
+  capabilities:
+    drop:
+      - ALL
+
+service:
+  type: NodePort  # Use NodePort for local access
+  port: 3000
+  targetPort: 3000
+  nodePort: 30300  # Fixed NodePort for easy access
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+
+ingress:
+  enabled: false
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+autoscaling:
+  enabled: false
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Okta MCP Server Configuration
+config:
+  pythonEnv: development
+  logLevel: debug
+  enableRequestLogging: true
+  mcpPort: 3000
+  mcpHost: "0.0.0.0"
+  healthCheckEnabled: true
+  shutdownTimeout: 30000
+  
+  # Okta Configuration (set these via environment or .env file)
+  oktaDomain: ""
+  oktaApiToken: ""
+  oktaAuthMethod: "api_token"
+  
+  # Model Provider Configuration
+  modelProvider: "openai"
+  modelName: "gpt-4"
+  apiKey: ""
+  
+  # Transport Configuration
+  transportType: "http"
+  iUnderstandTheRisks: "false"
+
+# Health check configuration
+# Using TCP socket checks since FastMCP doesn't expose a /health endpoint
+healthCheck:
+  livenessProbe:
+    tcpSocket:
+      port: http
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  readinessProbe:
+    tcpSocket:
+      port: http
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+  startupProbe:
+    tcpSocket:
+      port: http
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 10
+
+# Disable PodDisruptionBudget for local dev
+podDisruptionBudget:
+  enabled: false
+
+# Disable NetworkPolicy for local dev (easier debugging)
+networkPolicy:
+  enabled: false
+
+# Secrets for local development
+secrets:
+  enabled: false
+

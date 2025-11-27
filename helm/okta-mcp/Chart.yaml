@@ -1,0 +1,19 @@
+apiVersion: v2
+name: okta-mcp
+description: A Helm chart for Okta MCP Server with HTTP/SSE/STDIO transport
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - mcp
+  - okta
+  - ai
+  - model-context-protocol
+  - identity
+home: https://github.com/strike48/okta-mcp-server
+sources:
+  - https://github.com/strike48/okta-mcp-server
+maintainers:
+  - name: Strike48 Team
+    email: support@strike48.com
+
